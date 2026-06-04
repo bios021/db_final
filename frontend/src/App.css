@@ -1,0 +1,152 @@
+/* 全域與背景設定 */
+.app-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+  font-family: "PingFang TC", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* 登入卡片與學分卡片的共同基礎樣式 */
+.login-card, .dashboard-card {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.login-card {
+  padding: 40px 35px;
+  width: 340px;
+  text-align: center;
+}
+
+.dashboard-card {
+  padding: 35px;
+  width: 550px;
+}
+
+/* 登入頁元素 */
+.login-title {
+  margin: 0 0 5px 0;
+  color: #1e293b;
+  fontSize: 24px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.login-subtitle {
+  margin: 0 0 25px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 6px;
+}
+
+.input-label {
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  padding-left: 2px;
+}
+
+.login-input {
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  font-size: 14px;
+  color: #334155;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.login-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* 登入按鈕與 Hover 特效 (直接用 CSS :hover 實現，免去 JS 監聽！) */
+.login-button {
+  padding: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  margin-top: 10px;
+}
+
+.login-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  filter: brightness(1.1);
+}
+
+/* 學分頁元素 */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.logout-button {
+  padding: 6px 14px;
+  background-color: #fee2e2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.credit-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.credit-table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 14px;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.credit-table td {
+  padding: 12px;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* 訊息提示框 */
+.message-box {
+  margin-top: 20px;
+  padding: 10px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+}
