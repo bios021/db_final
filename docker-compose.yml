@@ -11,6 +11,6 @@ services:
       MYSQL_DATABASE: graduation_system
       TZ: Asia/Taipei  # 幫資料庫設定台灣時區
     volumes:
-      # 把同資料夾底下的 sql 檔，掛載進去自動執行
-      - ./Graduation_0531_new_ver2.sql:/docker-entrypoint-initdb.d/init.sql
+      # 把 sql 檔，掛載進去自動執行
+      - ./database/Graduation_0531_new_ver2.sql:/docker-entrypoint-initdb.d/init.sql
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci # 確保中文不會變亂碼
