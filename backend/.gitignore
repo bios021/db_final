@@ -1,0 +1,3 @@
+# .gitignore 檔案內容
+.env
+__pycache__/
