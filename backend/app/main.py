@@ -1,19 +1,32 @@
+# app/main.py
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import auth, graduation # 假設的路由導入
+
+from app.api.v1.auth import router as auth_router
+from app.api.v1.students import router as students_router
+from app.api.v1.graduation import router as grad_router
 
 app = FastAPI(title="學分檢核系統 API")
 
-# 允許前端來源
-origins = [
-    "http://localhost:3000", # 前端開發 Port (可修改)
-    "http://127.0.0.1:3000",
-]
-
+# 設定 CORS (允許前端 localhost:3306 來串接)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:3306", "http://127.0.0.1:3306"],
     allow_credentials=True,
     allow_methods=["*"], # 允許所有方法 (GET, POST, etc.)
     allow_headers=["*"],
 )
+
+# 註冊登入相關 API：網址 /api/v1/auth/login
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+
+# 註冊學生專屬 API：網址 /api/v1/students/me/courses
+app.include_router(students_router, prefix="/api/v1/students", tags=["Students"])
+
+# 註冊學分審查 API：網址 /api/v1/graduation/audit
+app.include_router(grad_router, prefix="/api/v1/graduation", tags=["Graduation Audit"])
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Graduation Audit API"}

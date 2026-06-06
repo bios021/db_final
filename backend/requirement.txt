@@ -1,8 +1,11 @@
 fastapi
 uvicorn
 sqlalchemy
+greenlet
 aiomysql
 pymysql
 alembic
 passlib[bcrypt]
+bcrypt==3.2.2
 pydantic-settings
+python-jose[cryptography]

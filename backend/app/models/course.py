@@ -1,4 +1,5 @@
 # app/models/course.py
+
 from typing import Optional
 from sqlalchemy import String, Integer, ForeignKey, ForeignKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,7 +14,7 @@ class Subject(Base):
 class Course(Base):
     __tablename__ = "COURSES"
     
-    course_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    course_id: Mapped[str] = mapped_column(String(20), primary_key=True)
     semester: Mapped[int] = mapped_column(Integer, primary_key=True)
     course_name: Mapped[str] = mapped_column(String(50), nullable=False)
     subject_id: Mapped[int] = mapped_column(ForeignKey("SUBJECT.subject_id"), nullable=False)
@@ -24,7 +25,7 @@ class StdCourseHistory(Base):
     __tablename__ = "STD_COURSE_HISTORY"
     
     student_id: Mapped[int] = mapped_column(ForeignKey("STUDENTS.student_id"), primary_key=True)
-    course_id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    course_id: Mapped[str] = mapped_column(String(20), primary_key=True)
     semester: Mapped[int] = mapped_column(Integer, primary_key=True)
     grade: Mapped[Optional[int]] = mapped_column(Integer)
 
