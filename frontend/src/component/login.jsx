@@ -20,6 +20,8 @@ function LoginView({ setIsLoggedIn, setStudentId }) {
       });
 
       if (response.ok) {
+	const data = await response.json()  // 拿到後端回傳的資料
+        localStorage.setItem('token', data.token)  // 存 token
         setStudentId(inputState.id);
         setIsLoggedIn(true);
       } else {
