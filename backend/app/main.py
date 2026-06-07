@@ -12,7 +12,7 @@ app = FastAPI(title="學分檢核系統 API")
 # 設定 CORS (允許前端 localhost:3306 來串接)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3306", "http://127.0.0.1:3306"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"], # 允許所有方法 (GET, POST, etc.)
     allow_headers=["*"],

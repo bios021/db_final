@@ -4,63 +4,55 @@ function DashboardView({ setIsLoggedIn, studentId }) {
   const [activeTab, setActiveTab] = useState('courses');
   const [creditData, setCreditData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [checkResult, setCheckResult] = useState(null);
   const [checking, setChecking] = useState(false);
+  const [checkError, setCheckError] = useState('');
 
+  // 修課紀錄
   useEffect(() => {
-    const mockData = [
-      { course_id: 1, course_name: '計算機概論', credits: 3, grade: 85 },
-      { course_id: 2, course_name: '資料結構', credits: 3, grade: 72 },
-      { course_id: 3, course_name: '網頁前端開發', credits: 2, grade: 55 },
-      { course_id: 4, course_name: '資料庫系統', credits: 3, grade: null },
-    ];
-    setCreditData(mockData);
-    setLoading(false);
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:8000/api/v1/students/me/courses', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+          setError('無法取得修課資料');
+          return;
+        }
+        const data = await response.json();
+        setCreditData(data.data ?? []);
+      } catch (err) {
+        setError('連線伺服器失敗');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
   }, [studentId]);
 
+  // 學分檢核
   const handleCheck = async () => {
     setChecking(true);
     setCheckResult(null);
-    const mockCheckResult = {
-      rules: [
-        {
-          rule_name: '專業必修規則',
-          required_credits: 39,
-          earned_credits: 20,
-          is_satisfied: false,
-          conditions: [
-            { condition_name: '微積分甲', required_credits: 6, earned_credits: 6, is_satisfied: true },
-            { condition_name: '線性代數', required_credits: 3, earned_credits: 0, is_satisfied: false },
-            { condition_name: '資料結構', required_credits: 3, earned_credits: 3, is_satisfied: true },
-          ]
-        },
-        {
-          rule_name: '專業群修規則',
-          required_credits: 12,
-          earned_credits: 6,
-          is_satisfied: false,
-          conditions: [
-            { condition_name: '群修A', required_credits: 6, earned_credits: 6, is_satisfied: true },
-            { condition_name: '群修B', required_credits: 3, earned_credits: 0, is_satisfied: false },
-            { condition_name: '群修C', required_credits: 3, earned_credits: 0, is_satisfied: false },
-          ]
-        },
-        {
-          rule_name: '通識規則',
-          required_credits: 28,
-          earned_credits: 3,
-          is_satisfied: false,
-          conditions: [
-            { condition_name: '人文通識', required_credits: 3, earned_credits: 3, is_satisfied: true },
-            { condition_name: '社會通識', required_credits: 3, earned_credits: 0, is_satisfied: false },
-            { condition_name: '自然通識', required_credits: 3, earned_credits: 0, is_satisfied: false },
-          ]
-        }
-      ]
-    };
-    await new Promise(resolve => setTimeout(resolve, 800));
-    setCheckResult(mockCheckResult);
-    setChecking(false);
+    setCheckError('');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8080/api/v1/graduation/audit', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!response.ok) {
+        setCheckError('無法取得檢核結果');
+        return;
+      }
+      const data = await response.json();
+      setCheckResult(data);
+    } catch (err) {
+      setCheckError('連線伺服器失敗');
+    } finally {
+      setChecking(false);
+    }
   };
 
   const handleTabChange = (tab) => {
@@ -102,29 +94,32 @@ function DashboardView({ setIsLoggedIn, studentId }) {
 
       <div className="dashboard-content-area">
         <div className="dashboard-card">
-          
+
+          {/* 修課紀錄 */}
           {activeTab === 'courses' && (
             <div>
               <h3 className="content-title">修課紀錄</h3>
-              {loading ? (
-                <p style={{ color: '#94a3b8' }}>載入中...</p>
-              ) : (
+              {loading && <p style={{ color: '#94a3b8' }}>載入中...</p>}
+              {error && <p style={{ color: '#e63946' }}>{error}</p>}
+              {!loading && !error && (
                 <table className="credit-table">
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc' }}>
-                      <th className="credit-table th">課程名稱</th>
-                      <th className="credit-table th">學分</th>
-                      <th className="credit-table th">成績</th>
-                      <th className="credit-table th">狀態</th>
+                      <th>學期</th>
+                      <th>課程名稱</th>
+                      <th>學分</th>
+                      <th>成績</th>
+                      <th>狀態</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {creditData.map((item) => (
-                      <tr key={item.course_id}>
-                        <td className="credit-table td">{item.course_name}</td>
-                        <td className="credit-table td">{item.credits}</td>
-                        <td className="credit-table td">{item.grade ?? '--'}</td>
-                        <td className="credit-table td">
+                    {creditData.map((item, idx) => (
+                      <tr key={idx}>
+                        <td>{item.semester}</td>
+                        <td>{item.course_name}</td>
+                        <td>{item.credits}</td>
+                        <td>{item.grade ?? '--'}</td>
+                        <td>
                           <span style={{
                             color: item.grade === null ? '#94a3b8' : item.grade >= 60 ? '#2ec4b6' : '#e63946',
                             fontWeight: '600'
@@ -140,43 +135,72 @@ function DashboardView({ setIsLoggedIn, studentId }) {
             </div>
           )}
 
+          {/* 學分檢核 */}
           {activeTab === 'check' && (
             <div>
               <h3 className="content-title">畢業學分檢核</h3>
-              {checking ? (
-                <p style={{ color: '#94a3b8' }}>檢核中...</p>
-              ) : checkResult ? (
-                checkResult.rules.map((rule, ruleIdx) => (
-                  <div key={ruleIdx} className="rule-card">
-                    <div className="rule-header">
-                      <span style={{ fontWeight: '600', color: '#334155' }}>{rule.rule_name}</span>
-                      <span style={{ color: rule.is_satisfied ? '#2ec4b6' : '#e63946', fontWeight: '600' }}>
-                        {rule.earned_credits} / {rule.required_credits} 學分
-                        {rule.is_satisfied ? ' [已達標]' : ' [未達標]'}
-                      </span>
-                    </div>
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{
-                        width: `${Math.min(rule.earned_credits / rule.required_credits * 100, 100)}%`,
-                        backgroundColor: rule.is_satisfied ? '#2ec4b6' : '#f59e0b'
-                      }} />
-                    </div>
-                    {rule.conditions.map((cond, condIdx) => (
-                      <div key={condIdx} className="condition-row">
-                        <span style={{ color: '#64748b', fontSize: '13px' }}>
-                          {cond.is_satisfied ? '[已達標]' : '[未達標]'} {cond.condition_name}
-                        </span>
-                        <span style={{ fontSize: '13px', color: '#64748b' }}>
+              {checking && <p style={{ color: '#94a3b8' }}>檢核中...</p>}
+              {checkError && <p style={{ color: '#e63946' }}>{checkError}</p>}
+              {!checking && checkResult && (
+                <>
+                  {/* 整體狀態 */}
+                  <div style={{
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    backgroundColor: checkResult.is_graduable ? '#d1fae5' : '#fee2e2',
+                    color: checkResult.is_graduable ? '#065f46' : '#dc2626',
+                    fontWeight: '600'
+                  }}>
+                    {checkResult.is_graduable ? '✅ 已達畢業門檻' : '❌ 尚未達到畢業門檻'}
+                    　總計：{checkResult.total_earned} / {checkResult.total_required} 學分
+                  </div>
+
+                  {/* 各條件細項 */}
+                  {checkResult.summary_by_conditions.map((cond, idx) => (
+                    <div key={idx} className="rule-card">
+                      <div className="rule-header">
+                        <span style={{ fontWeight: '600', color: '#334155' }}>{cond.condition_name}</span>
+                        <span style={{
+                          color: cond.status === 'COMPLETED' ? '#2ec4b6' : '#e63946',
+                          fontWeight: '600'
+                        }}>
                           {cond.earned_credits} / {cond.required_credits} 學分
+                          {cond.status === 'COMPLETED' ? ' ✓' : ' ✗'}
                         </span>
                       </div>
-                    ))}
-                  </div>
-                ))
-              ) : null}
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{
+                          width: `${Math.min(cond.earned_credits / cond.required_credits * 100, 100)}%`,
+                          backgroundColor: cond.status === 'COMPLETED' ? '#2ec4b6' : '#f59e0b'
+                        }} />
+                      </div>
+                      {cond.details.map((d, dIdx) => (
+                        <div key={dIdx} className="condition-row">
+                          <span style={{ fontSize: '13px', color: '#64748b' }}>　{d}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+
+                  {/* 未對應課程 */}
+                  {checkResult.unmapped_courses.length > 0 && (
+                    <div className="rule-card">
+                      <div style={{ fontWeight: '600', color: '#334155', marginBottom: '8px' }}>
+                        未對應課程
+                      </div>
+                      {checkResult.unmapped_courses.map((c, idx) => (
+                        <div key={idx} style={{ fontSize: '13px', color: '#94a3b8', padding: '4px 0' }}>
+                          　{c}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
-          
+
         </div>
       </div>
     </div>

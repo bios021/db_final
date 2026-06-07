@@ -13,7 +13,7 @@ function LoginView({ setIsLoggedIn, setStudentId }) {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
+      const response = await fetch('http://localhost:8000/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: inputState.id, password: inputState.pwd }),
@@ -21,7 +21,7 @@ function LoginView({ setIsLoggedIn, setStudentId }) {
 
       if (response.ok) {
 	const data = await response.json()  // 拿到後端回傳的資料
-        localStorage.setItem('token', data.token)  // 存 token
+        localStorage.setItem('token', data.access_token)  // 存 token
         setStudentId(inputState.id);
         setIsLoggedIn(true);
       } else {

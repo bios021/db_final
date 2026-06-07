@@ -8,7 +8,7 @@ function App() {
   const [studentId, setStudentId] = useState('');
 
   return (
-    <div className={isLoggedIn ? "app-container-full" : "app-container"}>
+    <div className={isLoggedIn ? "app-container-full" : "app-container-login"}>
       {isLoggedIn ? (
         <DashboardView setIsLoggedIn={setIsLoggedIn} studentId={studentId} />
       ) : (
