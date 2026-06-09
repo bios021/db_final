@@ -34,6 +34,11 @@ async def audit_graduation(
     # 2. 呼叫大腦，傳入目前登入學生的學號開始計算
     audit_report = await audit_service.calculate_audit(current_student_id)
     
+    # 🎯 核心修正：檢查大腦回傳的是不是「找不到規則」的字典
+    # 如果是，就改用 HTTPException 丟出錯誤，這會變成乾淨的 400 Bad Request，而不會讓後端噴 500
+    if isinstance(audit_report, dict) and "message" in audit_report:
+        raise HTTPException(status_code=400, detail=audit_report["message"])
+        
     # 3. 直接回傳計算完的字典，FastAPI 會自動幫你對齊 response_model=GraduationReportSchema 進行格式過濾與輸出
     return audit_report
     
