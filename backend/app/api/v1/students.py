@@ -3,11 +3,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
 
 from app.core.database import get_db
 from app.api.v1.auth import get_current_student_id
-from app.models.course import StdCourseHistory
+# 🚀 【關鍵修正 1】同時引入修課歷史 (StdCourseHistory) 與 課程本體 (Course)
+# 如果組員的課程模型叫作 Courses（有加s），請自行把 Course 改成 Courses
+from app.models.course import StdCourseHistory, Course
 
 router = APIRouter()
 
@@ -19,30 +20,34 @@ async def get_my_courses(
     db: AsyncSession = Depends(get_db) 
 ):
     """
-    獲取當前登入學生的所有修課紀錄
+    獲取當前登入學生的所有修課紀錄（動態資料庫正式版）
     """
-    # 執行非同步 SQL 查詢
-    # 這裡使用了 selectinload，讓 SQLAlchemy 一併把關聯的 COURSES 表拉出來
+    # 🚀 【關鍵修正 2】改用顯式 JOIN，直接透過 course_id 和 semester 把兩張表對齊
     stmt = (
-        select(StdCourseHistory)
+        select(StdCourseHistory, Course)
+        .join(
+            Course, 
+            (StdCourseHistory.course_id == Course.course_id) & 
+            (StdCourseHistory.semester == Course.semester)
+        )
         .where(StdCourseHistory.student_id == current_student_id)
-        .options(selectinload(StdCourseHistory.course)) 
     )
     
     result = await db.execute(stmt)
-    histories = result.scalars().all()
+    # 🚀 因為同時撈了兩張表，這裡要用 .all() 拿出一對一的資料元組 (rows)
+    rows = result.all()
 
     # 如果沒撈到資料，會給提示
-    if not histories:
+    if not rows:
         return {"message": "目前還沒有任何修課紀錄哦！", "data": []}
 
     # 整理成 JSON 格式準備回傳給前端
     courses_data = []
-    for h in histories:
+    for h, c in rows:  # 🚀 【關鍵修正 3】自動拆包：h 是歷史紀錄，c 是課程細節
         courses_data.append({
             "semester": h.semester,
-            "course_name": h.course.course_name, # 例如："資料庫系統" 或 "自然語言處理"
-            "credits": h.course.credits,
+            "course_name": c.course_name, # 🎯 從對齊的課程表撈出課名
+            "credits": c.credits,         # 🎯 從對齊的課程表撈出學分
             "grade": h.grade
         })
         
