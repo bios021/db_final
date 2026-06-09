@@ -29,11 +29,11 @@ async def audit_graduation(
 """
 @router.get("/audit", response_model=GraduationReportSchema)
 async def mock_audit_graduation(current_student_id: int = Depends(get_current_student_id)):
-    """
+    
     這是 Mock API：目前不會真的去資料庫算學分，
     而是回傳假資料，讓前端可以先串接測試畫面。
     前端必須在 Header 帶上： Authorization: Bearer <後端給的Token>
-    """
+    
     return GraduationReportSchema(
         student_id=current_student_id,
         is_graduable=False,
