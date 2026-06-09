@@ -4,6 +4,11 @@ from fastapi import APIRouter, Depends
 from app.schemas.graduation import GraduationReportSchema
 from app.api.v1.auth import get_current_student_id
 
+try:
+    from app.core.database import get_db
+except ImportError:
+    from app.database import get_db
+    
 # 建立 Router
 router = APIRouter()
 
