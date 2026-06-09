@@ -1,6 +1,6 @@
 # app/api/v1/graduation.py
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.graduation import GraduationReportSchema
 from app.api.v1.auth import get_current_student_id
 
