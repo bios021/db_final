@@ -7,6 +7,7 @@ from app.api.v1.auth import get_current_student_id
 # 建立 Router
 router = APIRouter()
 
+"""
 @router.get("/audit", response_model=GraduationReportSchema)
 async def mock_audit_graduation(current_student_id: int = Depends(get_current_student_id)):
     """
@@ -37,3 +38,16 @@ async def mock_audit_graduation(current_student_id: int = Depends(get_current_st
         ],
         unmapped_courses=["1122 網球初級 (0學分)"]
     )
+"""
+
+@router.get("/audit") # 如果有 schema 可以加上 response_model=GraduationReportSchema
+async def get_graduation_audit(
+    current_student_id: int = Depends(get_current_student_id),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    執行真實學分檢核：從 JWT 取得學號，並呼叫 Service 進行演算法計算
+    """
+    service = GraduationAuditService(db)
+    report = await service.calculate_audit(current_student_id)
+    return report
