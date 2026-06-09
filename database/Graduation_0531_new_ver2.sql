@@ -2,7 +2,7 @@ SET NAMES utf8mb4; -- 強制確保使用 UTF-8 編碼寫入
 CREATE TABLE `STUDENTS` (
   `student_id` integer PRIMARY KEY,
   `student_name` varchar(20) NOT NULL,
-  `password` varchar(20) NOT NULL COMMENT '登入系統所需密碼#hash過的字串
+  `password` varchar(255) NOT NULL COMMENT '登入系統所需密碼#hash過的字串
 ',
   `unit_id` integer NOT NULL COMMENT '  ',
   `enrollment_year` integer NOT NULL COMMENT '入學學年度
@@ -189,7 +189,7 @@ INSERT IGNORE INTO `COURSES` (`course_id`, `semester`, `course_name`, `subject_i
 
 -- 7. 建立測試學生 (STUDENTS)
 INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `enrollment_year`) VALUES 
-(112304099, '王曉明', 'password123', 2, 112);
+(112304099, '王曉明', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa', 2, 112);
 
 -- 8. 建立修課紀錄 (STD_COURSE_HISTORY)
 INSERT INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`) VALUES 
