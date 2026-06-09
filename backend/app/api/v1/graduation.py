@@ -4,6 +4,12 @@ from fastapi import APIRouter, Depends
 from app.schemas.graduation import GraduationReportSchema
 from app.api.v1.auth import get_current_student_id
 
+# 🎯 修正一：補上資料庫異步型態的 import
+from sqlalchemy.ext.asyncio import AsyncSession
+
+# 🎯 修正二：補上負責計算學分大腦的 import
+from app.services.audit_service import GraduationAuditService
+
 try:
     from app.core.database import get_db
 except ImportError:
