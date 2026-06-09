@@ -8,6 +8,26 @@ from app.api.v1.auth import get_current_student_id
 router = APIRouter()
 
 @router.get("/audit", response_model=GraduationReportSchema)
+async def audit_graduation(
+    current_student_id: int = Depends(get_current_student_id),
+    db: AsyncSession = Depends(get_db)  # 🚀 透過依賴注入（Depends）取得資料庫連線
+):
+    """
+    【畢業學分審查系統正式 API】
+    安全防護：自動從前端帶過來的 JWT Token 中解析出目前登入學生的學號（防範越權查詢）。
+    核心邏輯：從資料庫動態撈取該學生的修課紀錄、比對適用畢業規則、計算超修與分流，回傳最真實的審查報告。
+    """
+    # 1. 實例化畢業審查 Service，並把資料庫連線丟進去
+    audit_service = GraduationAuditService(db)
+    
+    # 2. 呼叫大腦，傳入目前登入學生的學號開始計算
+    audit_report = await audit_service.calculate_audit(current_student_id)
+    
+    # 3. 直接回傳計算完的字典，FastAPI 會自動幫你對齊 response_model=GraduationReportSchema 進行格式過濾與輸出
+    return audit_report
+    
+"""
+@router.get("/audit", response_model=GraduationReportSchema)
 async def mock_audit_graduation(current_student_id: int = Depends(get_current_student_id)):
     """
     這是 Mock API：目前不會真的去資料庫算學分，
@@ -37,3 +57,4 @@ async def mock_audit_graduation(current_student_id: int = Depends(get_current_st
         ],
         unmapped_courses=["1122 網球初級 (0學分)"]
     )
+"""
