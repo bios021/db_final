@@ -20,8 +20,8 @@ dist
 *~
 .DS_Store
 
-# 環境檔案（不應在容器中包含本地環境變數）
-.env
+# 環境檔案（不應在容器中包含本地環境變數
+#.env
 .env.local
 .env.*.local
 

@@ -7,6 +7,10 @@ function LoginView({ setIsLoggedIn, setStudentId }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    //login test
+    //console.log(import.meta.env);
+    //console.log(import.meta.env.VITE_API_URL);
+
     if (!inputState.id || !inputState.pwd) {
       setMessage('⚠️ 請填寫學號與密碼！');
       return;
@@ -14,7 +18,9 @@ function LoginView({ setIsLoggedIn, setStudentId }) {
 
     // 修改：將硬編碼的 localhost 改為讀取 Vite 環境變數，適配未來的 Docker 部署
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
+      const response = await fetch(
+      //`http://localhost:8000/api/v1/auth/login`,{
+      `${import.meta.env.VITE_API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: inputState.id, password: inputState.pwd }),

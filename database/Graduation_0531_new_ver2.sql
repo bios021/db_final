@@ -189,7 +189,8 @@ INSERT IGNORE INTO `COURSES` (`course_id`, `semester`, `course_name`, `subject_i
 
 -- 7. 建立測試學生 (STUDENTS)
 INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `enrollment_year`) VALUES 
-(112304099, '王曉明', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa', 2, 112);
+(112304099, '王曉明', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa'
+, 2, 112);
 
 -- 8. 建立修課紀錄 (STD_COURSE_HISTORY)
 INSERT INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`) VALUES 

@@ -34,6 +34,11 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(data={"sub": str(student.student_id)})
     return TokenResponse(access_token=access_token)
 
+    # login test
+    # print("學號:", login_data.student_id)
+    # print("密碼:", login_data.password)
+    # print("驗證結果:", verify_password(login_data.password, student.password))
+
 
 async def get_current_student_id(credentials: HTTPAuthorizationCredentials = Depends(security_scheme)) -> int:
     """
@@ -55,3 +60,4 @@ async def get_current_student_id(credentials: HTTPAuthorizationCredentials = Dep
         return int(student_id_str)
     except (JWTError, ValueError):
         raise credentials_exception
+
