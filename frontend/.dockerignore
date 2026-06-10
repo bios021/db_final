@@ -1,0 +1,43 @@
+# ============================================================================
+# .dockerignore 檔案：排除不必要的檔案以減小映像大小
+# ============================================================================
+
+# 依賴目錄（構建階段會重新安裝）
+node_modules
+
+# 構建輸出目錄（構建階段會重新生成）
+dist
+
+# 版本控制
+.git
+.gitignore
+
+# IDE 和編輯器
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 環境檔案（不應在容器中包含本地環境變數）
+.env
+.env.local
+.env.*.local
+
+# 構建日誌和快取
+npm-debug.log
+npm-error.log
+yarn-error.log
+yarn-debug.log
+
+# 測試相關（若有）
+coverage
+.nyc_output
+
+# 文檔（構建時不需要）
+#README.md
+#CHANGELOG.md
+
+# 配置檔案（構建時不需要）
+# eslint.config.js

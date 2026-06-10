@@ -1,0 +1,19 @@
+# 攔截密碼環境變數檔案
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# 攔截前端黑洞
+node_modules/
+frontend/node_modules/
+
+# 攔截打包產物
+dist/
+frontend/dist/
+__pycache__/
+*.pyc
+
+# 攔截作業系統暫存
+.DS_Store
+.vscode/

@@ -1,0 +1,232 @@
+# ============================================================================
+# 學分檢核系統 - Docker Compose 生產環境配置
+# ============================================================================
+# 此配置文件定義了完整的三層應用堆棧：
+# - 資料庫層：MySQL 8.0
+# - 應用層：FastAPI 後端
+# - 表現層：React + Nginx 前端
+#
+# 【核心特性】
+# 1. 服務健康檢查：確保依賴服務完全就緒
+# 2. 開機順序聯動：backend 等待 db 健康檢查通過再啟動
+# 3. 資料持久化：MySQL 數據存儲在具名 Volume 中
+# 4. 自動重啟策略：容器異常退出時自動重啟
+# ============================================================================
+
+version: '3.8'
+
+# ============================================================================
+# 【服務定義】
+# ============================================================================
+services:
+
+  # ============================================================================
+  # 資料庫服務：MySQL 8.0
+  # ============================================================================
+  db:
+    image: mysql:8.0
+    container_name: graduation-db
+    
+    # 📍 環境變數配置
+    environment:
+      # MySQL root 用戶密碼
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      
+      # 預設資料庫（應用初始化時自動建立）
+      MYSQL_DATABASE: graduation_system
+      
+      # 台灣時區設定
+      TZ: Asia/Taipei
+      
+      # MySQL 字符編碼確保中文不亂碼
+      # MYSQL_COLLATE: utf8mb4_unicode_ci
+    
+    # 📍 連接埠映射
+    # 【格式】主機埠:容器埠
+    # 允許本地透過 localhost:3306 連接容器內的 MySQL
+    ports:
+      - "3306:3306"
+    
+    # 📍 資料持久化
+    # 將容器內的 MySQL 數據目錄掛載到具名 Volume
+    # 即使容器刪除，數據也會保留在 Volume 中
+    volumes:
+      # 資料目錄
+      - db_data:/var/lib/mysql
+      
+      # 初始化 SQL 腳本（容器首次啟動時自動執行）
+      - ./database/Graduation_0531_new_ver2.sql:/docker-entrypoint-initdb.d/init.sql
+    
+    # 📍 重啟策略
+    # unless-stopped：除非明確停止，否則容器異常退出時會自動重啟
+    restart: unless-stopped
+    
+    # 📍 MySQL 啟動參數
+    # 字符集和排序規則設定，確保中文支援
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    
+    # ========================================================================
+    # 🌟 【健康檢查】- 確保 MySQL 完全初始化
+    # ========================================================================
+    # Docker Compose 使用健康檢查結果決定服務依賴關係
+    # 當 backend 設定 "condition: service_healthy" 時，
+    # 會等待 db 的健康檢查通過才啟動後端
+    healthcheck:
+      # 檢查命令：驗證 MySQL 是否正常運行
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      
+      # 間隔時間：每 10 秒執行一次檢查
+      interval: 10s
+      
+      # 超時時間：單次檢查最多等待 5 秒
+      timeout: 5s
+      
+      # 重試次數：連續失敗 5 次才判定為不健康
+      retries: 5
+      
+      # 啟動延遲：容器啟動後 15 秒再開始檢查（給 MySQL 充分初始化時間）
+      start_period: 15s
+
+
+  # ============================================================================
+  # 應用服務：FastAPI 後端
+  # ============================================================================
+  backend:
+    # 📍 構建配置
+    # 告訴 Docker Compose 從 ./backend/Dockerfile 構建映像
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    
+    container_name: graduation-backend
+    
+    # 📍 連接埠映射
+    # 容器內 FastAPI 監聽埠 8000 → 主機埠 8000
+    ports:
+      - "8000:8000"
+    
+    # ========================================================================
+    # 🔗 【開機順序優化】- 等待資料庫完全就緒
+    # ========================================================================
+    # "condition: service_healthy" 是本配置的核心
+    # 它確保 backend 不會在 MySQL 還未完全初始化時就嘗試連接
+    # 避免啟動時的連接失敗和容器反覆重啟
+    depends_on:
+      db:
+        condition: service_healthy
+    
+    # 📍 環境變數注入
+    # 這些變數會直接傳入容器，FastAPI 的 config.py 會讀取這些值
+    environment:
+      # 🔴 重要：資料庫連接字符串
+      # - mysql+aiomysql://：非同步 MySQL 驅動（性能最佳）
+      # - root:my-secret-pw：MySQL 憑證
+      # - db：服務名稱（Docker Compose 自動解析為 MySQL 容器 IP）
+      # - 3306：MySQL 標準埠
+      DATABASE_URL: mysql+aiomysql://root:my-secret-pw@db:3306/graduation_system
+      
+      # Alembic 遷移工具需要的同步驅動
+      SYNC_DATABASE_URL: mysql+pymysql://root:my-secret-pw@db:3306/graduation_system
+      
+      # JWT Token 過期時間（單位：分鐘）
+      # 設為 120 分鐘適合開發和效能測試
+      # 生產環境建議改為 30 分鐘
+      ACCESS_TOKEN_EXPIRE_MINUTES: 120
+      
+      # 時區設定
+      TZ: Asia/Taipei
+    
+    # 📍 重啟策略
+    restart: unless-stopped
+    
+    # 📍 日誌配置（可選）
+    # 避免日誌檔案過大
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  # ============================================================================
+  # 表現層服務：React + Nginx 前端
+  # ============================================================================
+  frontend:
+    # 📍 構建配置
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    
+    container_name: graduation-frontend
+    
+    # 📍 連接埠映射
+    # 容器內 Nginx 監聽埠 80 → 主機埠 3000
+    # 訪問方式：http://localhost:3000
+    ports:
+      - "3000:80"
+    
+    # 📍 依賴關係
+    # 前端需要等待後端和資料庫啟動
+    # （此處未設置 condition，預設為 service_started）
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    
+    # # 📍 環境變數
+    # # 注意：Vite 構建時需要設定 VITE_API_URL 以正確配置 API 端點
+    # environment:
+    # # 前端是跑在客戶端瀏覽器，必須指回 localhost
+    #   VITE_API_URL: http://localhost:8000
+    #   TZ: Asia/Taipei
+    #   # API 伺服器地址（用於 Vite 構建時注入）
+    #   #VITE_API_URL: http://backend:8000
+      
+    #   #TZ: Asia/Taipei
+    
+    # 📍 重啟策略
+    restart: unless-stopped
+    
+    # 📍 日誌配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+# ============================================================================
+# 【具名卷宣告】
+# ============================================================================
+# named volume 由 Docker 管理，優於 bind mount（主機路徑綁定）
+# 優點：
+# - 數據持久化：容器刪除後數據保留
+# - 效能更佳：尤其在 Windows/Mac 上執行 Linux 容器
+# - 跨平台相容性：無需指定主機路徑
+volumes:
+  db_data:
+    # driver: local 為默認驅動，支援所有平台
+    driver: local
+
+
+# ============================================================================
+# 【整體架構總結】
+# ============================================================================
+# 啟動順序流程：
+# 1. docker-compose up -d
+# 2. MySQL 容器啟動 → 執行健康檢查 → 狀態轉為 healthy
+# 3. FastAPI 後端容器啟動 → 偵測到 db 為 healthy → 連接資料庫
+# 4. React 前端容器啟動 → 訪問 http://localhost:3000
+#
+# 停止順序流程：
+# 1. docker-compose down
+# 2. 按相反順序停止容器（frontend → backend → db）
+# 3. 具名卷 db_data 保留，下次啟動時恢復數據
+#
+# 【常用指令】
+# docker-compose -f docker-compose2.yml up -d          # 啟動所有服務（背景執行）
+# docker-compose -f docker-compose2.yml down           # 停止並移除容器
+# docker-compose -f docker-compose2.yml logs backend   # 查看後端日誌
+# docker-compose -f docker-compose2.yml ps             # 查看服務狀態
+# ============================================================================

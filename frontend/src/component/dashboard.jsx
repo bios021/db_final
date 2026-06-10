@@ -14,7 +14,8 @@ function DashboardView({ setIsLoggedIn, studentId }) {
     const fetchCourses = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:8000/api/v1/students/me/courses', {
+        //改為讀取 Vite 環境變數
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/students/me/courses`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!response.ok) {
@@ -39,7 +40,8 @@ function DashboardView({ setIsLoggedIn, studentId }) {
     setCheckError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/v1/graduation/audit', {
+      //改為讀取 Vite 環境變數
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/graduation/audit`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) {

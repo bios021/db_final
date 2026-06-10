@@ -9,8 +9,9 @@ from app.core.config import settings  # 引入設定檔
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False, # 開發階段若想看生成的 SQL 可以設為 True
-    pool_size=20,
-    max_overflow=10
+    #配合壓測提升連線池容量
+    pool_size=100,
+    max_overflow=50
 )
 
 AsyncSessionLocal = async_sessionmaker(
