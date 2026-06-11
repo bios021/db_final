@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.graduation import GraduationReportSchema
 from app.api.v1.auth import get_current_student_id
 
-# 🎯 修正一：補上資料庫異步型態的 import
+# 補上資料庫異步型態的 import
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# 🎯 修正二：補上負責計算學分大腦的 import
+# 補上負責計算學分大腦的 import
 from app.services.audit_service import GraduationAuditService
 
 try:
@@ -34,7 +34,7 @@ async def audit_graduation(
     # 2. 呼叫大腦，傳入目前登入學生的學號開始計算
     audit_report = await audit_service.calculate_audit(current_student_id)
     
-    # 🎯 核心修正：檢查大腦回傳的是不是「找不到規則」的字典
+    # 檢查大腦回傳的是不是「找不到規則」的字典
     # 如果是，就改用 HTTPException 丟出錯誤，這會變成乾淨的 400 Bad Request，而不會讓後端噴 500
     if isinstance(audit_report, dict) and "message" in audit_report:
         raise HTTPException(status_code=400, detail=audit_report["message"])
