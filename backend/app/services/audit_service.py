@@ -97,17 +97,23 @@ class GraduationAuditService:
         # ==========================================
         # Step 4: 裝載至你規定的 ConditionSummary 格式
         # ==========================================
-        audit_results = {
-            cond_id: {
+        audit_results = {}
+        for cond_id, c in conditions_map.items():
+            # 🌟 核心攔截判斷：只要名稱包含人文、社會、自然，無視資料庫設定，強制覆蓋為 3~7 學分
+            is_general_edu = any(kw in c.condition_name for kw in ['人文', '社會', '自然'])
+            
+            req_credits = 3 if is_general_edu else c.required_credits
+            max_credits = 7 if is_general_edu else c.max_admitted_credits
+
+            audit_results[cond_id] = {
                 "condition_id": cond_id,
                 "condition_name": c.condition_name,
-                "required_credits": c.required_credits,
-                "max_admitted_credits": c.max_admitted_credits,
+                "required_credits": req_credits,
+                "max_admitted_credits": max_credits,
                 "earned_credits": 0,
                 "status": "UNCOMPLETED",
                 "details": []
-            } for cond_id, c in conditions_map.items()
-        }
+            }
         
         free_elective_credits = 0
         unmapped_courses = []
@@ -118,8 +124,9 @@ class GraduationAuditService:
 
             if sub_id in subject_to_cond:
                 cond_id = subject_to_cond[sub_id]
-                cond_meta = conditions_map[cond_id]
-                max_credits = cond_meta.max_admitted_credits
+                
+                # 🌟 從 audit_results 讀取我們剛剛覆蓋的動態上限值，而不是原本的 cond_meta
+                max_credits = audit_results[cond_id]["max_admitted_credits"]
                 current = audit_results[cond_id]["earned_credits"]
 
                 if current + course.credits <= max_credits:
