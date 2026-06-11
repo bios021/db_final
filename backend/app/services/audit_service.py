@@ -84,7 +84,6 @@ class GraduationAuditService:
                 failed_credits += course.credits
                 continue
 
-            # 🌟 【學年課去重】
             term = history.semester % 10 
             dedup_key = f"{course.subject_id}_{term}"
 
@@ -124,7 +123,11 @@ class GraduationAuditService:
 
             if sub_id in subject_to_cond:
                 cond_id = subject_to_cond[sub_id]
-                
+                cond_meta = conditions_map[cond_id]
+                rule = rules_map[cond_meta.rule_id]
+
+                is_gened = '通識' in rule.rule_name
+
                 # 🌟 從 audit_results 讀取我們剛剛覆蓋的動態上限值，而不是原本的 cond_meta
                 max_credits = audit_results[cond_id]["max_admitted_credits"]
                 current = audit_results[cond_id]["earned_credits"]
@@ -141,8 +144,11 @@ class GraduationAuditService:
                     else:
                         audit_results[cond_id]["details"].append(f"{course.course_name} (已達上限，{course.credits} 學分全溢出)")
                     
-                    free_elective_credits += excess
-                    unmapped_courses.append(f"{course.course_name} (溢出的 {excess} 學分)")
+                    if not is_gened:
+                        free_elective_credits += excess
+                        unmapped_courses.append(f"{course.course_name} (群修溢出轉選修 {excess} 學分)")
+                    else:
+                        unmapped_courses.append(f"{course.course_name} (通識學分溢出，不採計 {excess} 學分)")
             else:
                 free_elective_credits += course.credits
                 unmapped_courses.append(f"{course.course_name} ({course.credits} 學分)")
@@ -169,8 +175,22 @@ class GraduationAuditService:
         f_gened_credits = min(gened_cond_sum, 28)
         gened_overflow = gened_cond_sum - f_gened_credits
         free_elective_credits += gened_overflow
+        
         if gened_overflow > 0:
             unmapped_courses.append(f"通識學分溢出 ({gened_overflow} 學分)")
+
+        gened_rule_completed = (f_gened_credits >= 28)
+        audit_results_list = list(audit_results.values())
+        
+        audit_results_list.append({
+            "condition_id": 9999, # 給予一個不重複的虛擬 ID
+            "condition_name": "⚠️ 畢業總額管制：總通識學分需滿 28 分",
+            "required_credits": 28,
+            "max_admitted_credits": 28,
+            "earned_credits": f_gened_credits,
+            "status": "COMPLETED" if gened_rule_completed else "UNCOMPLETED",
+            "details": [f"目前人文、社會、自然三大領域及及語文通識有效採計總和僅為 {f_gened_credits} 學分"]
+        })
 
         # ==========================================
         # Step 6: 判定畢業資格
@@ -181,15 +201,14 @@ class GraduationAuditService:
         # 條件 1: 所有 Condition 皆為 COMPLETED
         all_cond_completed = all(r["status"] == "COMPLETED" for r in audit_results.values())
         # 條件 2: 總學分 >= 124
-        is_graduable = all_cond_completed and (total_earned >= 124)
-
+        is_graduable = all_cond_completed and gened_rule_completed and (total_earned >= 124)
         return {
             "student_id": student_id,
             "is_graduable": is_graduable,
             "total_required": total_required,
             "total_earned": total_earned,
             "free_elective_credits": free_elective_credits,
-            "summary_by_conditions": list(audit_results.values()),
+            "summary_by_conditions": audit_results_list,
             "unmapped_courses": unmapped_courses,
             "f_gened_credits": f_gened_credits,
             "h_major_credits": major_cond_sum,
