@@ -13,7 +13,6 @@ app = FastAPI(title="學分檢核系統 API")
 app.add_middleware(
     CORSMiddleware,
     # allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    #開 ["*"]配合壓力測試
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"], # 允許所有方法 (GET, POST, etc.)

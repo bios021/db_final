@@ -128,8 +128,8 @@ INSERT INTO `UNITS` (`unit_id`, `unit_name`, `college_id`) VALUES
 (14, '企管系', 2),
 (15, '財管系', 2),
 (16, '國貿系', 2),
-(17, '中文系', 4),      -- 🌟 新增中文系
-(18, '歷史系', 4),      -- 🌟 新增歷史系
+(17, '中文系', 4),      --  新增中文系
+(18, '歷史系', 4),      --  新增歷史系
 (19, '哲學系', 4);
 
 -- ==========================================
@@ -332,7 +332,7 @@ INSERT INTO `CONDITION` (`condition_id`, `rule_id`, `condition_name`, `required_
 (35, 4, '112學年度資訊科學系群修E', 3, 3); -- 這邊是 B~E 須選三門但領域不重複，檢驗邏輯要注意 
 
 
--- 5. COURSES (建立學期真實開課)
+-- 5. COURSES (建立學期開課)
 -- 統計系部分
 -- 匯入 1121 學期 統計學課程
 INSERT IGNORE INTO `COURSES` (`course_id`, `semester`, `course_name`, `subject_id`, `unit_id`, `credits`) VALUES 
@@ -548,17 +548,17 @@ INSERT IGNORE INTO `COURSES` (`course_id`, `semester`, `course_name`, `subject_i
 ('912002001', 1121, '大學英文(二)', '912002', '99', 3),
 ('912003001', 1122, '西班牙文', '912003', '99', 3),
 
--- 🌻 人文通識 (Condition 4)
+--  人文通識 (Condition 4)
 ('901001001', 1121, '哲學概論', '901001', 99, 3),
 ('901002001', 1122, '台灣文學欣賞', '901002', 99, 2),
 ('901003001', 1131, '世界歷史與文化', '901003', 99, 2),
 
--- 🤝 社會通識 (Condition 5)
+--  社會通識 (Condition 5)
 ('902001001', 1121, '社會學導論', '902001', 99, 3),
 ('902002001', 1122, '法學緒論', '902002', 99, 2),
 ('902003001', 1131, '心理學與生活', '902003', 99, 2),
 
--- 🌲 自然通識 (Condition 6)
+--  自然通識 (Condition 6)
 ('903001001', 1121, '宇宙與天文', '903001', 99, 3),
 ('903002001', 1122, '生命科學導論', '903002', 99, 2),
 ('903003001', 1131, '環境與生態', '903003', 99, 2);
@@ -641,7 +641,7 @@ INSERT IGNORE INTO `COURSES` (`course_id`, `semester`, `course_name`, `subject_i
 -- ==========================================
 -- 6. CONDITION_COURSE (把統計系課程丟進對應的畢業條件籃子)
 -- ==========================================
--- 🎯 【群修 四選二】(Condition 21)
+--  【群修 四選二】(Condition 21)
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
 (21, '304021011', 1141), -- 抽樣調查
 (21, '304022011', 1141), -- 變異數分析
@@ -650,22 +650,22 @@ INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) 
 (21, '304023011', 1142), -- 多變量分析 (大三)
 (21, '354939001', 1142); -- 多變量分析 (碩班)
 
--- 🎯 【群修 八選一】(Condition 22) - 財務管理
+--  【群修 八選一】(Condition 22) - 財務管理
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
 (22, '000347001', 1141), (22, '000347041', 1141), (22, '000347051', 1141),
 (22, '000347061', 1141), (22, '000347071', 1141), (22, '000347081', 1141),
 (22, '000347101', 1141), (22, '000347121', 1141), (22, '070153001', 1141);
 
--- 把新開的課程丟進中/英文的籃子裡
+-- 中/英文通識
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
--- 資科系籃子
+-- 資科系
 (7, '911001001', 1141), (7, '911002001', 1142), (7, '911003001', 1131),
 (8, '912001001', 1132), (8, '912002001', 1121), (8, '912003001', 1122),
--- 統計系籃子
+-- 統計系
 (14, '911001001', 1141), (14, '911002001', 1142), (14, '911003001', 1131),
 (15, '912001001', 1132), (15, '912002001', 1121), (15, '912003001', 1122);
 
--- 🎯 【專業必修】(Condition 20) - 大一到大三所有的必修
+--  【必修】(Condition 20) - 大一到大三所有的必修
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
 -- 統計學(一)、(二)
 (20, '000359021', 1121), (20, '000359031', 1121), (20, '000359041', 1121), (20, '000359061', 1121), 
@@ -794,38 +794,38 @@ INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) 
 (13, '703042001', 1132); -- 等候理論
 
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
--- 🎯 【111統計人文通】(Condition 4)
+--  【111統計人文通】(Condition 4)
 (4, '901001001', 1121),
 (4, '901002001', 1122),
 (4, '901003001', 1131),
 
--- 🎯 【111統計社會通】(Condition 5)
+--  【111統計社會通】(Condition 5)
 (5, '902001001', 1121),
 (5, '902002001', 1122),
 (5, '902003001', 1131),
 
--- 🎯 【111統計自然通】(Condition 6)
+--  【111統計自然通】(Condition 6)
 (6, '903001001', 1121),
 (6, '903002001', 1122),
 (6, '903003001', 1131);
 
 INSERT IGNORE INTO `CONDITION_COURSE` (`condition_id`, `course_id`, `semester`) VALUES 
--- 🎯 【111資科人文通】(Condition 1)
+--  【111資科人文通】(Condition 1)
 (1, '901001001', 1121),
 (1, '901002001', 1122),
 (1, '901003001', 1131),
 
--- 🎯 【111資科社會通】(Condition 2)
+--  【111資科社會通】(Condition 2)
 (2, '902001001', 1121),
 (2, '902002001', 1122),
 (2, '902003001', 1131),
 
--- 🎯 【111資科自然通】(Condition 3)
+--  【111資科自然通】(Condition 3)
 (3, '903001001', 1121),
 (3, '903002001', 1122),
 (3, '903003001', 1131);
  
--- 7. 建立測試學生 (STUDENTS)
+-- 建立測試學生 (STUDENTS)
 INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `enrollment_year`) VALUES 
 (112304099, '王曉明', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa'
 , 12, 112);
@@ -834,7 +834,7 @@ INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `en
 (111703099, '王大明', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa'
 , 11, 111);
 
--- 8. 建立修課紀錄 (STD_COURSE_HISTORY)
+-- 建立修課紀錄 (STD_COURSE_HISTORY)
 INSERT INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`) VALUES 
 (112304099, 000359021, 1121, 85); -- 統計學(一) (過關)
 
@@ -845,9 +845,9 @@ INSERT INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`
 INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `enrollment_year`) VALUES 
 (111304001, '張三', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa', 12, 111);
 
--- 幫張三灌入完美的修課紀錄 (直接滿足各大畢業條件)
+-- 幫張三寫入修課紀錄
 INSERT IGNORE INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`) VALUES 
--- 🎯 1. 專業必修 (Condition 20)
+--  1. 專業必修 (Condition 20)
 (111304001, '000359021', 1121, 85), -- 統計學(一)
 (111304001, '000360021', 1122, 88), -- 統計學(二)
 (111304001, '000713021', 1121, 75), -- 微積分甲(上)
@@ -882,14 +882,14 @@ INSERT IGNORE INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, 
 
 
 
--- 🎯 2. 群修：四選二 (Condition 21)
+--  2. 群修：四選二 (Condition 21)
 (111304001, '304021011', 1141, 82), -- 抽樣調查方法
 (111304001, '304022011', 1141, 84), -- 變異數分析與實驗設計
 
--- 🎯 3. 群修：八選一 (Condition 22)
+--  3. 群修：八選一 (Condition 22)
 (111304001, '000347001', 1141, 89), -- 財務管理
 
--- 🎯 4. 通識課程 (Condition 4, 5, 6)
+--  4. 通識課程 (Condition 4, 5, 6)
 (111304001, '902001001', 1121, 85), -- 社會通：社會學導論 (3學分)
 (111304001, '903001001', 1121, 80), -- 自然通：宇宙與天文 (3學分)
 (111304001, '901002001', 1122, 78), -- 台灣文學欣賞 (2學分)
@@ -902,9 +902,9 @@ INSERT IGNORE INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, 
 INSERT INTO `STUDENTS` (`student_id`, `student_name`, `password`, `unit_id`, `enrollment_year`) VALUES
 (111703001, '李四', '$2a$12$1vLs3.SZ//ZsFRgZZQ79hevQTNrePcdDrUgdqIMpjKCBwwX6wSwVa', 11, 111);
 
--- 111 資科系：修完專業必修、群修 A/B/C、一般通識三領域
+-- 111 資科系：修完必修、群修 A/B/C、一般通識三領域
 INSERT IGNORE INTO `STD_COURSE_HISTORY` (`student_id`, `course_id`, `semester`, `grade`) VALUES
--- 專業必修
+-- 必修
 (111703001, '000713001', 1111, 85), -- 微積分甲(上)
 (111703001, '000713002', 1112, 88), -- 微積分甲(下)
 (111703001, '703049001', 1111, 90), -- 計算機程式設計（一）

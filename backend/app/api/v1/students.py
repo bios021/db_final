@@ -6,15 +6,13 @@ from sqlalchemy.future import select
 
 from app.core.database import get_db
 from app.api.v1.auth import get_current_student_id
-# 🚀 【關鍵修正 1】同時引入修課歷史 (StdCourseHistory) 與 課程本體 (Course)
-# 如果組員的課程模型叫作 Courses（有加s），請自行把 Course 改成 Courses
 from app.models.course import StdCourseHistory, Course
 
 router = APIRouter()
 
 @router.get("/me/courses")
 async def get_my_courses(
-    # 檢查 Token 並吐出學號
+    # 檢查 Token 並找出學號
     current_student_id: int = Depends(get_current_student_id),
     # 開啟資料庫連線
     db: AsyncSession = Depends(get_db) 
@@ -22,7 +20,7 @@ async def get_my_courses(
     """
     獲取當前登入學生的所有修課紀錄（動態資料庫正式版）
     """
-    # 🚀 【關鍵修正 2】改用顯式 JOIN，直接透過 course_id 和 semester 把兩張表對齊
+    # 改用JOIN，直接透過 course_id 和 semester 把兩張表對齊
     stmt = (
         select(StdCourseHistory, Course)
         .join(
@@ -34,7 +32,7 @@ async def get_my_courses(
     )
     
     result = await db.execute(stmt)
-    # 🚀 因為同時撈了兩張表，這裡要用 .all() 拿出一對一的資料元組 (rows)
+    # 因為同時撈了兩張表，這裡要用 .all() 拿出一對一的資料元組 (rows)
     rows = result.all()
 
     # 如果沒撈到資料，會給提示
@@ -43,11 +41,11 @@ async def get_my_courses(
 
     # 整理成 JSON 格式準備回傳給前端
     courses_data = []
-    for h, c in rows:  # 🚀 【關鍵修正 3】自動拆包：h 是歷史紀錄，c 是課程細節
+    for h, c in rows:  # h 是歷史紀錄，c 是課程細節
         courses_data.append({
             "semester": h.semester,
-            "course_name": c.course_name, # 🎯 從對齊的課程表撈出課名
-            "credits": c.credits,         # 🎯 從對齊的課程表撈出學分
+            "course_name": c.course_name, # 從對齊的課程表撈出課名
+            "credits": c.credits,         # 從對齊的課程表撈出學分
             "grade": h.grade
         })
         

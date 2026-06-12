@@ -2,15 +2,14 @@
 
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-from app.core.config import settings  # 引入設定檔
+from app.core.config import settings  
 
-# 應用程式使用非同步驅動 aiomysql
+# 使用非同步驅動 aiomysql
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=False, # 開發階段若想看生成的 SQL 可以設為 True
-    #配合壓測提升連線池容量
-    pool_size=100,
+    echo=False, # 若想看生成的 SQL 可以設為 True
+    pool_size=100, #配合壓測提升 pool_size
     max_overflow=50
 )
 
@@ -23,7 +22,7 @@ AsyncSessionLocal = async_sessionmaker(
 class Base(DeclarativeBase):
     pass
 
-# FastAPI 依賴注入使用
+# FastAPI 使用
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session

@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func  # 新增這一行來使用資料庫的聚合函數 (如 Max)
+from sqlalchemy import func  # 使用資料庫的聚合函數 (如 Max)
 from fastapi import HTTPException, status
 
 from app.models.student import Unit, Student
@@ -29,7 +29,7 @@ class GraduationAuditService:
         related_unit_ids = (await self.db.execute(stmt_units)).scalars().all()
 
         # ==========================================
-        # Step 2: 自動沿用最新舊制規則
+        # Step 2: 沿用最新舊制規則
         # ==========================================
         subq = (
             select(
@@ -98,7 +98,7 @@ class GraduationAuditService:
         # ==========================================
         audit_results = {}
         for cond_id, c in conditions_map.items():
-            # 🌟 核心攔截判斷：只要名稱包含人文、社會、自然，無視資料庫設定，強制覆蓋為 3~7 學分
+            # 只要名稱包含人文、社會、自然，無視資料庫設定，強制覆蓋為 3~7 學分
             is_general_edu = any(kw in c.condition_name for kw in ['人文', '社會', '自然'])
             
             req_credits = 3 if is_general_edu else c.required_credits
@@ -128,7 +128,7 @@ class GraduationAuditService:
 
                 is_gened = '通識' in rule.rule_name
 
-                # 🌟 從 audit_results 讀取我們剛剛覆蓋的動態上限值，而不是原本的 cond_meta
+                # 從 audit_results 讀取我們剛剛的值，而不是原本的 cond_meta
                 max_credits = audit_results[cond_id]["max_admitted_credits"]
                 current = audit_results[cond_id]["earned_credits"]
 
@@ -174,8 +174,7 @@ class GraduationAuditService:
         # 處理總通識 (F) 最高 28 的限制
         f_gened_credits = min(gened_cond_sum, 28)
         gened_overflow = gened_cond_sum - f_gened_credits
-        free_elective_credits += gened_overflow
-        
+
         if gened_overflow > 0:
             unmapped_courses.append(f"通識學分溢出 ({gened_overflow} 學分)")
 
@@ -200,7 +199,7 @@ class GraduationAuditService:
         
         # 條件 1: 所有 Condition 皆為 COMPLETED
         all_cond_completed = all(r["status"] == "COMPLETED" for r in audit_results.values())
-        # 條件 2: 總學分 >= 124
+        # 條件 2: 總學分 >= 124 及 通識學分通過
         is_graduable = all_cond_completed and gened_rule_completed and (total_earned >= 124)
         return {
             "student_id": student_id,
